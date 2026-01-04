@@ -2,14 +2,26 @@
 """
 Test script to download audio from Spotify using librespot-python
 This script will attempt to download track 3QmLC9gCWbqvn7cUKWivq1
+
+Usage:
+  # With stored credentials:
+  python test_audio_download.py /path/to/credentials.json
+  
+  # With OAuth (opens browser):
+  python test_audio_download.py
 """
 
 import logging
 import sys
+import os
 from librespot.core import Session
 from librespot.metadata import TrackId
 from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
 from librespot import Version
+
+# Configuration
+# Set this to your credentials.json path, or pass as command line argument
+CREDENTIALS_PATH = None  # e.g., "/path/to/credentials.json"
 
 # Enable debug logging to see detailed information
 logging.basicConfig(
@@ -30,17 +42,35 @@ def main():
     logger.info(f"Build info version: {Version.standard_build_info().version}")
     logger.info("=" * 80)
     
-    # Create session using OAuth (will open browser for authentication)
-    logger.info("Creating session with OAuth authentication...")
-    logger.info("A browser window will open for authentication")
+    # Determine credentials path from command line or config
+    credentials_path = None
+    if len(sys.argv) > 1:
+        credentials_path = sys.argv[1]
+    elif CREDENTIALS_PATH:
+        credentials_path = CREDENTIALS_PATH
     
+    # Create session
     try:
-        session = Session.Builder() \
-            .oauth(None) \
-            .create()
-        logger.info("✓ Session created successfully")
+        if credentials_path and os.path.exists(credentials_path):
+            logger.info(f"Creating session with stored credentials from: {credentials_path}")
+            logger.info("Credentials format supported: Python librespot (username/type/credentials) or Rust librespot (username/auth_type/auth_data)")
+            session = Session.Builder() \
+                .stored_file(credentials_path) \
+                .create()
+            logger.info("✓ Session created successfully with stored credentials")
+        else:
+            if credentials_path:
+                logger.warning(f"Credentials file not found: {credentials_path}")
+            logger.info("Creating session with OAuth authentication...")
+            logger.info("A browser window will open for authentication")
+            session = Session.Builder() \
+                .oauth(None) \
+                .create()
+            logger.info("✓ Session created successfully with OAuth")
     except Exception as e:
         logger.error(f"✗ Failed to create session: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
     
     # Track ID to download
