@@ -6,7 +6,7 @@ import platform
 
 
 class Version:
-    version_name = "1.2.51.442.g7d3046a6"
+    version_name = "1.2.52.442.g7d3046a6"
 
     @staticmethod
     def platform() -> Platform:
@@ -31,4 +31,4 @@ class Version:
         return BuildInfo(product=Product.PRODUCT_CLIENT,
                          product_flags=[ProductFlags.PRODUCT_FLAG_NONE],
                          platform=Version.platform(),
-                         version=117300517)
+                         version=124200290)
